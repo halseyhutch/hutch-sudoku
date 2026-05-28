@@ -4,11 +4,24 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "vitest run",
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run --exclude tests/engine/acceptance.test.ts",
+    "test:acceptance": "vitest run tests/engine/acceptance.test.ts",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "typescript": "^5.4.0",
     "vitest": "^1.6.0"
+  },
+  "dependencies": {
+    "@types/react": "^19.2.15",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^4.3.0",
+    "lucide-react": "^1.17.0",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "vite": "^5.4.0"
   }
 }
