@@ -1,5 +1,6 @@
 import { CELL_COUNT } from "./grid";
 import { countSolutions, fillSolvedGrid } from "./bruteSolver";
+import { gradePuzzle, type DifficultyBand, type Grade } from "./grader";
 import type { Givens } from "./types";
 
 export interface GenerateOptions {
@@ -7,14 +8,30 @@ export interface GenerateOptions {
   symmetry?: "none" | "rotational";
   minClues?: number;
   maxAttempts?: number;
+  difficulty?: Exclude<DifficultyBand, "Unrated">;
+  maxGradeAttempts?: number;
 }
 
 export interface GeneratedPuzzle {
   givens: Givens;
   solution: Uint8Array;
+  grade: Grade;
 }
 
 export function generatePuzzle(options: GenerateOptions = {}): GeneratedPuzzle {
+  const maxGradeAttempts = options.difficulty ? (options.maxGradeAttempts ?? 50) : 1;
+
+  for (let gradeAttempt = 0; gradeAttempt < maxGradeAttempts; gradeAttempt++) {
+    const puzzle = generateUniquePuzzle(options, options.difficulty);
+    if (!options.difficulty || puzzle.grade.band === options.difficulty) {
+      return puzzle;
+    }
+  }
+
+  throw new Error(`Failed to generate a ${options.difficulty} puzzle.`);
+}
+
+function generateUniquePuzzle(options: GenerateOptions, difficulty?: Exclude<DifficultyBand, "Unrated">): GeneratedPuzzle {
   const random = options.random ?? Math.random;
   const symmetry = options.symmetry ?? "rotational";
   const minClues = options.minClues ?? 24;
@@ -39,15 +56,38 @@ export function generatePuzzle(options: GenerateOptions = {}): GeneratedPuzzle {
         group.forEach((cell, index) => {
           givens[cell] = removed[index];
         });
+        continue;
+      }
+
+      if (difficulty && shouldStopRemoving(givens, difficulty)) {
+        break;
       }
     }
 
     if (countSolutions(givens, { limit: 2 }).count === 1) {
-      return { givens, solution };
+      return { givens, solution, grade: gradePuzzle(givens) };
     }
   }
 
   throw new Error("Failed to generate a unique puzzle.");
+}
+
+function shouldStopRemoving(givens: Givens, difficulty: Exclude<DifficultyBand, "Unrated">): boolean {
+  const grade = gradePuzzle(givens);
+  if (!grade.solved) {
+    return true;
+  }
+
+  switch (difficulty) {
+    case "Easy":
+      return grade.band === "Easy" && countClues(givens) <= 45;
+    case "Medium":
+      return grade.band === "Medium";
+    case "Hard":
+      return grade.band === "Hard";
+    case "Expert":
+      return grade.band === "Expert";
+  }
 }
 
 function removalGroups(symmetry: GenerateOptions["symmetry"], random: () => number): number[][] {

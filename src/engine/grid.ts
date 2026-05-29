@@ -147,6 +147,8 @@ export function computeCandidates(grid: Grid): void {
 }
 
 export function applyStep(grid: Grid, step: Step): void {
+  const previousCandidates = new Uint16Array(grid.candidates);
+
   for (const { cell, digit } of step.placements) {
     assertCell(cell);
     assertDigit(digit);
@@ -160,6 +162,12 @@ export function applyStep(grid: Grid, step: Step): void {
   }
 
   computeCandidates(grid);
+
+  for (let cell = 0; cell < CELL_COUNT; cell++) {
+    if (grid.values[cell] === 0) {
+      grid.candidates[cell] &= previousCandidates[cell];
+    }
+  }
 
   for (const { cell, digit } of step.eliminations) {
     assertCell(cell);

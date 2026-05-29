@@ -12,14 +12,14 @@ export function solveLogically(grid: Grid, options: LogicalSolveOptions = {}): S
   const techniques = options.techniques ?? DEFAULT_TECHNIQUES;
   const maxSteps = options.maxSteps ?? 500;
   const steps: Step[] = [];
+  computeCandidates(working);
 
   for (let stepIndex = 0; stepIndex < maxSteps; stepIndex++) {
-    computeCandidates(working);
     if (isSolved(working)) {
       return { solved: true, steps, grid: working };
     }
 
-    const step = findNextStep(working, techniques);
+    const step = findNextStepFromCandidates(working, techniques);
     if (!step) {
       return { solved: false, steps, grid: working };
     }
@@ -36,6 +36,10 @@ export function findNextStep(
   techniques: Technique[] = DEFAULT_TECHNIQUES,
 ): Step | null {
   computeCandidates(grid);
+  return findNextStepFromCandidates(grid, techniques);
+}
+
+function findNextStepFromCandidates(grid: Grid, techniques: Technique[]): Step | null {
   for (const technique of techniques) {
     const step = technique.find(grid);
     if (step) {
