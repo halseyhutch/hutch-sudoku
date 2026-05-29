@@ -2,7 +2,8 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  base: mode === "production" ? "/hutch-sudoku/" : "/",
   plugins: [
     react(),
     VitePWA({
@@ -44,4 +45,4 @@ export default defineConfig({
       },
     }),
   ],
-});
+}));
